@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Savings Calculator — Josue</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;font-size:13px;color:#1a1a1a;background:#f5f5f3;padding:16px}
+  .brand-bar{background:#185fa5;color:#fff;border-radius:10px;padding:12px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+  .brand-name{font-size:15px;font-weight:700}
+  .brand-contact{font-size:12px;opacity:.9}
+  .customer-bar{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+  .customer-bar label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:#666;white-space:nowrap}
+  .customer-bar input{flex:1;padding:7px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:15px;font-weight:500;color:#1a1a1a}
+  .customer-bar input::placeholder{color:#bbb;font-weight:400}
+  .heading-row{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  h2{font-size:16px;font-weight:500;color:#1a1a1a}
+  .customer-name-display{font-size:16px;font-weight:600;color:#2a78d6}
+  .lang-badge{display:inline-block;background:#eef3fb;color:#1a4a80;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:500;margin-left:4px}
+  .controls{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .ctrl-group{display:flex;flex-direction:column;gap:4px}
+  .ctrl-group label{font-size:11px;color:#666;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+  .ctrl-group input[type="number"]{width:110px;padding:6px 8px;border:0.5px solid #ccc;border-radius:6px;font-size:13px;color:#1a1a1a}
+  .toggle-wrap{display:flex;align-items:center;gap:8px;margin-top:4px}
+  .toggle-label{font-size:13px;color:#444}
+  .toggle{position:relative;display:inline-block;width:44px;height:24px}
+  .toggle input{opacity:0;width:0;height:0}
+  .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:24px;transition:.2s}
+  .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+  input:checked+.slider{background:#2a78d6}
+  input:checked+.slider:before{transform:translateX(20px)}
+  .btn-row{display:flex;gap:10px;margin-left:auto}
+  .translate-btn{padding:8px 16px;background:#2a78d6;color:#fff;border:none;border-radius:7px;font-size:13px;cursor:pointer;font-weight:500}
+  .translate-btn:hover{background:#1a68c6}
+  .table-wrap{overflow-x:auto;border-radius:10px;border:0.5px solid #ddd;background:#fff;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;min-width:520px}
+  th.th-year{background:#e6f1fb;color:#185fa5}
+  th.th-utility{background:#b5d4f4;color:#0c447c}
+  th.th-loan{background:#378add;color:#fff}
+  th.th-ppa{background:#185fa5;color:#fff}
+  th{font-weight:500;font-size:12px;text-align:center;padding:10px 8px;border-bottom:0.5px solid #ddd}
+  th.th-year{text-align:left;padding-left:14px}
+  td{padding:7px 8px;text-align:center;border-bottom:0.5px solid #f0efec;font-size:13px;font-variant-numeric:tabular-nums}
+  td:first-child{text-align:left;padding-left:14px}
+  tr:hover td{background:#fafaf8}
+  tr:last-child td{border-bottom:none}
+  .year-cell{color:#185fa5;font-weight:500}
+  .utility-cell{color:#0c447c}
+  .loan-cell{color:#378add}
+  .ppa-cell{color:#185fa5}
+  .inactive-cell{color:#bbb;font-style:italic}
+  .totals-row td{background:#eaf3fb;font-weight:600;border-top:1.5px solid #b5d4f4}
+  .totals-row td:first-child{color:#0c447c}
+  .savings-section{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  .savings-card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:16px 18px}
+  .savings-card.loan-card{border-top:3px solid #378add}
+  .savings-card.ppa-card{border-top:3px solid #185fa5}
+  .sc-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .sc-label.loan{color:#378add}.sc-label.ppa{color:#185fa5}
+  .sc-amount{font-size:32px;font-weight:700;letter-spacing:-.5px;margin-bottom:2px}
+  .sc-amount.loan{color:#378add}.sc-amount.ppa{color:#185fa5}
+  .sc-sub{font-size:12px;color:#888;margin-bottom:14px}
+  .sc-compare{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+  .sc-row{display:flex;justify-content:space-between;font-size:12px}
+  .sc-row-label{color:#666}.sc-row-val{font-weight:500}
+  .bar-track{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin-bottom:4px}
+  .bar-fill{height:100%;border-radius:4px;transition:width .4s}
+  .bar-fill.loan{background:#378add}.bar-fill.ppa{background:#185fa5}
+  .bar-legend{display:flex;justify-content:space-between;font-size:10px;color:#aaa}
+  .ideas-section{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:18px 20px}
+  .ideas-header{font-size:13px;font-weight:500;color:#0c447c;margin-bottom:14px}
+  .ideas-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .idea-item{display:flex;gap:10px;padding:10px 12px;background:#f7fafd;border:0.5px solid #dce8f5;border-radius:8px}
+  .idea-num{font-size:13px;font-weight:700;color:#378add;min-width:20px}
+  .idea-title{font-size:12px;font-weight:500;color:#0c447c;margin-bottom:2px}
+  .idea-desc{font-size:11px;color:#666;line-height:1.5}
+  .idea-cost{font-size:11px;font-weight:600;color:#378add;margin-top:3px}
+</style>
+</head>
+<body>
+
+<div class="brand-bar">
+  <div class="brand-name" id="brand-name">☀️ Josue — Solar Energy Advisor</div>
+  <div class="brand-contact">📞 (916) 821-8503</div>
+</div>
+
+<div class="customer-bar">
+  <label id="lbl-customer">Customer name</label>
+  <input type="text" id="customer-name" placeholder="Enter customer name…" oninput="updateCustomerDisplay()">
+</div>
+
+<div class="heading-row">
+  <h2 id="main-heading">Solar savings comparison</h2>
+  <span class="customer-name-display" id="customer-display"></span>
+  <span id="lang-badge" class="lang-badge" style="display:none">Español</span>
+</div>
+
+<div class="controls">
+  <div class="ctrl-group"><label id="lbl-utility-bill">Starting utility bill ($/mo)</label><input type="number" id="utility-start" value="200" min="0" step="1"></div>
+  <div class="ctrl-group"><label id="lbl-utility-rate">Utility escalation rate (%/yr)</label><input type="number" id="utility-rate" value="8" min="0" max="30" step="0.1"></div>
+  <div class="ctrl-group"><label id="lbl-utility-term">Utility term (years)</label><input type="number" id="utility-term" value="25" min="1" max="25" step="1"></div>
+  <div class="ctrl-group"><label id="lbl-loan-payment">Loan payment ($/mo)</label><input type="number" id="loan-payment" value="150" min="0" step="1"></div>
+  <div class="ctrl-group"><label id="lbl-loan-term">Loan term (years)</label><input type="number" id="loan-term" value="20" min="1" max="25" step="1"></div>
+  <div class="ctrl-group"><label id="lbl-ppa-payment">PPA starting payment ($/mo)</label><input type="number" id="ppa-start" value="130" min="0" step="1"></div>
+  <div class="ctrl-group">
+    <label id="lbl-ppa-escalator">PPA escalator</label>
+    <div class="toggle-wrap">
+      <span class="toggle-label" id="lbl-flat">Flat (0%)</span>
+      <label class="toggle"><input type="checkbox" id="ppa-escalate" checked><span class="slider"></span></label>
+      <span class="toggle-label" id="lbl-escalate">3.5%/yr</span>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="translate-btn" id="translate-btn" onclick="doTranslate()">🌐 Translate to Spanish</button>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th class="th-year" id="th-year">Year</th>
+      <th class="th-utility" id="th-utility">Utility monthly bill</th>
+      <th class="th-loan" id="th-loan">Solar loan payment</th>
+      <th class="th-ppa" id="th-ppa">Solar PPA payment</th>
+    </tr></thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
+<div class="savings-section">
+  <div class="savings-card loan-card">
+    <div class="sc-label loan" id="sc-loan-label">Loan savings vs. utility</div>
+    <div class="sc-amount loan" id="sc-loan-amount">—</div>
+    <div class="sc-sub" id="sc-loan-sub">saved over 25 years</div>
+    <div class="sc-compare">
+      <div class="sc-row"><span class="sc-row-label" id="sc-loan-util-lbl">Utility total</span><span class="sc-row-val" id="sc-loan-util-val">—</span></div>
+      <div class="sc-row"><span class="sc-row-label" id="sc-loan-solar-lbl">Loan total</span><span class="sc-row-val" id="sc-loan-solar-val">—</span></div>
+    </div>
+    <div class="bar-track"><div class="bar-fill loan" id="loan-bar" style="width:0%"></div></div>
+    <div class="bar-legend"><span id="loan-bar-lbl-solar">Solar loan</span><span id="loan-bar-lbl-util">Utility</span></div>
+  </div>
+  <div class="savings-card ppa-card">
+    <div class="sc-label ppa" id="sc-ppa-label">PPA savings vs. utility</div>
+    <div class="sc-amount ppa" id="sc-ppa-amount">—</div>
+    <div class="sc-sub" id="sc-ppa-sub">saved over 25 years</div>
+    <div class="sc-compare">
+      <div class="sc-row"><span class="sc-row-label" id="sc-ppa-util-lbl">Utility total</span><span class="sc-row-val" id="sc-ppa-util-val">—</span></div>
+      <div class="sc-row"><span class="sc-row-label" id="sc-ppa-solar-lbl">PPA total</span><span class="sc-row-val" id="sc-ppa-solar-val">—</span></div>
+    </div>
+    <div class="bar-track"><div class="bar-fill ppa" id="ppa-bar" style="width:0%"></div></div>
+    <div class="bar-legend"><span id="ppa-bar-lbl-solar">Solar PPA</span><span id="ppa-bar-lbl-util">Utility</span></div>
+  </div>
+</div>
+
+<div class="ideas-section">
+  <div class="ideas-header" id="ideas-header">What could you do with those savings in the Bay Area?</div>
+  <div class="ideas-grid" id="ideas-grid"></div>
+</div>
+
+<script>
+const S={
+  en:{
+    customer_label:"Customer name",customer_placeholder:"Enter customer name…",
+    heading:"Solar savings comparison",  brand_name:"☀️ James — Solar Energy Advisor",
+    lbl_utility_bill:"Starting utility bill ($/mo)",lbl_utility_rate:"Utility escalation rate (%/yr)",
+    lbl_utility_term:"Utility term (years)",lbl_loan_payment:"Loan payment ($/mo)",
+    lbl_loan_term:"Loan term (years)",lbl_ppa_payment:"PPA starting payment ($/mo)",
+    lbl_ppa_escalator:"PPA escalator",lbl_flat:"Flat (0%)",lbl_escalate:"3.5%/yr",
+    translate_btn:"🌐 Translate to Spanish",
+    th_year:"Year",th_utility:"Utility monthly bill",th_loan:"Solar loan payment",th_ppa:"Solar PPA payment",
+    row_totals:"Totals",loan_inactive:"paid off",utility_inactive:"—",year_label:"Year",
+    sc_loan_label:"Loan savings vs. utility",sc_ppa_label:"PPA savings vs. utility",
+    sc_saved:"saved over 25 years",sc_util_lbl:"Utility total",
+    sc_loan_solar_lbl:"Loan total",sc_ppa_solar_lbl:"PPA total",
+    bar_solar_loan:"Solar loan",bar_solar_ppa:"Solar PPA",bar_util:"Utility",
+    ideas_header:"What could you do with those savings in the Bay Area?"
+  },
+  es:{
+    customer_label:"Nombre del cliente",customer_placeholder:"Ingrese el nombre del cliente…",
+    heading:"Comparación de ahorros solares",  brand_name:"☀️ James — Asesor de Energía Solar",
+    lbl_utility_bill:"Factura inicial ($/mes)",lbl_utility_rate:"Tasa de aumento (%/año)",
+    lbl_utility_term:"Plazo electricidad (años)",lbl_loan_payment:"Pago del préstamo ($/mes)",
+    lbl_loan_term:"Plazo del préstamo (años)",lbl_ppa_payment:"Pago inicial del PPA ($/mes)",
+    lbl_ppa_escalator:"Escalador del PPA",lbl_flat:"Sin aumento (0%)",lbl_escalate:"3.5%/año",
+    translate_btn:"🌐 Traducir al inglés",
+    th_year:"Año",th_utility:"Factura mensual",th_loan:"Pago del préstamo solar",th_ppa:"Pago del PPA solar",
+    row_totals:"Totales",loan_inactive:"pagado",utility_inactive:"—",year_label:"Año",
+    sc_loan_label:"Ahorro: préstamo vs. electricidad",sc_ppa_label:"Ahorro: PPA vs. electricidad",
+    sc_saved:"ahorrados en 25 años",sc_util_lbl:"Total electricidad",
+    sc_loan_solar_lbl:"Total préstamo",sc_ppa_solar_lbl:"Total PPA",
+    bar_solar_loan:"Préstamo solar",bar_solar_ppa:"PPA solar",bar_util:"Electricidad",
+    ideas_header:"¿Qué podrías hacer con esos ahorros en el Área de la Bahía?"
+  }
+};
+
+const IDEAS={
+  en:[
+    {title:"Pay off your mortgage faster",desc:"Apply monthly savings to your principal and shave years off your home loan.",cost:"~$500–$1,500/mo extra toward principal"},
+    {title:"Remodel your kitchen",desc:"Bay Area kitchen renovations average $60K–$120K — solar savings can fund it without touching your equity.",cost:"Avg. $80,000 in the Bay Area"},
+    {title:"Take the family to Europe",desc:"A two-week trip for a family of four from SFO runs about $8,000–$15,000.",cost:"~$10,000 for a family of 4"},
+    {title:"Add an ADU to your property",desc:"A backyard ADU in the Bay Area can generate $2,500+/mo in rental income.",cost:"Avg. $150,000–$250,000 to build"},
+    {title:"Max out your retirement accounts",desc:"Redirect savings into a Roth IRA or 401(k). Even $300/mo compounds significantly over 25 years.",cost:"IRA limit: $7,000/yr (2025)"},
+    {title:"Buy an electric vehicle",desc:"Pair solar savings with CA's $7,500 federal EV credit. Your solar charges it free.",cost:"Tesla Model 3 from ~$40,000"}
+  ],
+  es:[
+    {title:"Paga tu hipoteca más rápido",desc:"Aplica el ahorro mensual al capital y elimina años de tu préstamo.",cost:"~$500–$1,500/mes extra al capital"},
+    {title:"Remodelar tu cocina",desc:"Las remodelaciones en el Área de la Bahía promedian $60K–$120K.",cost:"Prom. $80,000 en el Área de la Bahía"},
+    {title:"Llevar a la familia a Europa",desc:"Un viaje de dos semanas para familia de cuatro desde SFO cuesta $8,000–$15,000.",cost:"~$10,000 para una familia de 4"},
+    {title:"Agregar una ADU a tu propiedad",desc:"Una ADU en el Área de la Bahía puede generar más de $2,500/mes en renta.",cost:"Prom. $150,000–$250,000 para construir"},
+    {title:"Maximizar tus cuentas de retiro",desc:"Redirige los ahorros a un Roth IRA o 401(k). Se multiplican en 25 años.",cost:"Límite IRA: $7,000/año (2025)"},
+    {title:"Comprar un vehículo eléctrico",desc:"Combina los ahorros con el crédito federal de $7,500 para VE en CA.",cost:"Tesla Model 3 desde ~$40,000"}
+  ]
+};
+
+let lang='en';
+let state={totalUtility:0,totalLoan:0,totalPPA:0};
+function fmt(n){return '$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+function fmtK(n){return '$'+Math.round(n).toLocaleString()}
+function el(id){return document.getElementById(id)}
+
+function updateCustomerDisplay(){
+  const name=el('customer-name').value.trim();
+  el('customer-display').textContent=name?'— '+name:'';
+}
+
+function applyLabels(){
+  const s=S[lang];
+  el('brand-name').textContent=s.brand_name;
+  el('lbl-customer').textContent=s.customer_label;
+  el('customer-name').placeholder=s.customer_placeholder;
+  el('main-heading').textContent=s.heading;
+  el('lbl-utility-bill').textContent=s.lbl_utility_bill;
+  el('lbl-utility-rate').textContent=s.lbl_utility_rate;
+  el('lbl-utility-term').textContent=s.lbl_utility_term;
+  el('lbl-loan-payment').textContent=s.lbl_loan_payment;
+  el('lbl-loan-term').textContent=s.lbl_loan_term;
+  el('lbl-ppa-payment').textContent=s.lbl_ppa_payment;
+  el('lbl-ppa-escalator').textContent=s.lbl_ppa_escalator;
+  el('lbl-flat').textContent=s.lbl_flat;
+  el('lbl-escalate').textContent=s.lbl_escalate;
+  el('translate-btn').textContent=s.translate_btn;
+  el('th-year').textContent=s.th_year;
+  el('th-utility').textContent=s.th_utility;
+  el('th-loan').textContent=s.th_loan;
+  el('th-ppa').textContent=s.th_ppa;
+  el('sc-loan-label').textContent=s.sc_loan_label;
+  el('sc-ppa-label').textContent=s.sc_ppa_label;
+  el('sc-loan-sub').textContent=s.sc_saved;
+  el('sc-ppa-sub').textContent=s.sc_saved;
+  el('sc-loan-util-lbl').textContent=s.sc_util_lbl;
+  el('sc-loan-solar-lbl').textContent=s.sc_loan_solar_lbl;
+  el('sc-ppa-util-lbl').textContent=s.sc_util_lbl;
+  el('sc-ppa-solar-lbl').textContent=s.sc_ppa_solar_lbl;
+  el('loan-bar-lbl-solar').textContent=s.bar_solar_loan;
+  el('loan-bar-lbl-util').textContent=s.bar_util;
+  el('ppa-bar-lbl-solar').textContent=s.bar_solar_ppa;
+  el('ppa-bar-lbl-util').textContent=s.bar_util;
+  el('ideas-header').textContent=s.ideas_header;
+  el('lang-badge').style.display=lang==='es'?'inline-block':'none';
+}
+
+function render(){
+  const s=S[lang];
+  const uStart=parseFloat(el('utility-start').value)||0;
+  const uRate=parseFloat(el('utility-rate').value)/100||0;
+  const uTerm=parseInt(el('utility-term').value)||25;
+  const lPay=parseFloat(el('loan-payment').value)||0;
+  const lTerm=parseInt(el('loan-term').value)||20;
+  const pStart=parseFloat(el('ppa-start').value)||0;
+  const pRate=el('ppa-escalate').checked?0.035:0;
+  const tbody=el('table-body');
+  tbody.innerHTML='';
+  let tU=0,tL=0,tP=0;
+  for(let y=1;y<=25;y++){
+    const uA=y<=uTerm;
+    const uMo=uA?uStart*Math.pow(1+uRate,y-1):0;
+    const uYr=uMo*12;
+    const lA=y<=lTerm;
+    const lYr=lA?lPay*12:0;
+    const pMo=pStart*Math.pow(1+pRate,y-1);
+    const pYr=pMo*12;
+    tU+=uYr;tL+=lYr;tP+=pYr;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="year-cell">${s.year_label} ${y}</td>
+      <td class="${uA?'utility-cell':'inactive-cell'}">${uA?fmt(uMo)+' <span style="color:#aaa;font-size:11px">('+fmtK(uYr)+'/yr)</span>':s.utility_inactive}</td>
+      <td class="${lA?'loan-cell':'inactive-cell'}">${lA?fmt(lPay)+' <span style="color:#aaa;font-size:11px">('+fmtK(lYr)+'/yr)</span>':'— '+s.loan_inactive}</td>
+      <td class="ppa-cell">${fmt(pMo)+' <span style="color:#aaa;font-size:11px">('+fmtK(pYr)+'/yr)</span>'}</td>`;
+    tbody.appendChild(tr);
+  }
+  const tot=document.createElement('tr');
+  tot.className='totals-row';
+  tot.innerHTML=`<td>${s.row_totals}</td><td class="utility-cell">${fmtK(tU)}</td><td class="loan-cell">${fmtK(tL)}</td><td class="ppa-cell">${fmtK(tP)}</td>`;
+  tbody.appendChild(tot);
+  state={totalUtility:tU,totalLoan:tL,totalPPA:tP};
+  el('sc-loan-amount').textContent=fmtK(tU-tL);
+  el('sc-loan-util-val').textContent=fmtK(tU);
+  el('sc-loan-solar-val').textContent=fmtK(tL);
+  el('loan-bar').style.width=tU>0?Math.round((tL/tU)*100)+'%':'0%';
+  el('sc-ppa-amount').textContent=fmtK(tU-tP);
+  el('sc-ppa-util-val').textContent=fmtK(tU);
+  el('sc-ppa-solar-val').textContent=fmtK(tP);
+  el('ppa-bar').style.width=tU>0?Math.round((tP/tU)*100)+'%':'0%';
+}
+
+function renderIdeas(){
+  el('ideas-grid').innerHTML=IDEAS[lang].map((item,i)=>`
+    <div class="idea-item">
+      <div class="idea-num">${i+1}</div>
+      <div><div class="idea-title">${item.title}</div><div class="idea-desc">${item.desc}</div><div class="idea-cost">${item.cost}</div></div>
+    </div>`).join('');
+}
+
+function doTranslate(){lang=lang==='en'?'es':'en';applyLabels();render();renderIdeas();}
+
+document.querySelectorAll('input[type="number"]').forEach(i=>i.addEventListener('input',render));
+el('ppa-escalate').addEventListener('change',render);
+applyLabels();render();renderIdeas();
+</script>
+</body>
+</html>
